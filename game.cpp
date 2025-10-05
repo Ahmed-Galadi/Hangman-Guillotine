@@ -1,6 +1,7 @@
 #include "game.hpp"
 #include <random>
 #include <fstream>
+#include <vector>
 
 // static helpers
 
@@ -10,10 +11,29 @@ static int randomIndex() {
 	std::uniform_int_distribution<> dis(1, 201);
 	return (dis(gen));
 }
+static std::vector<std::string> getFrame(int failureCount) {
+    std::vector<std::string> output;
+    
+    int start = failureCount * 9;
+    
+    std::ifstream stateFile("Guillotine.txt");
+    if (!stateFile.is_open()) {
+        std::cerr << "Error: Could not open Guillotine.txt" << std::endl;
+        return output;
+    }    
+    std::string line;
 
-static std::string	getFrame(int failureCount) {
-
+    for (int i = 0; i < start && getline(stateFile, line); i++) ;
+    
+	if (failureCount == 5)
+		for (int i = 0; i < 11 && getline(stateFile, line); i++)
+			output.push_back(line);
+	else
+	   for (int i = 0; i < 8 && getline(stateFile, line); i++)
+		 output.push_back(line);
+	return output;
 }
+
 
 // class members
 game::game() : failureCount(0), score(0), gameOver(false) {
@@ -30,13 +50,15 @@ game::game() : failureCount(0), score(0), gameOver(false) {
 
 void	game::setDiscoveredChar(char c) {
 	size_t i;
+	bool	correct = false;
 	for (i = 0; i < secretWord.length(); i++) {
 		if (c == secretWord[i]) {
 			discoveredChars[i] = secretWord[i];
 			score += 10;
+			correct = true;
 		}
 	}
-	if (i != secretWord.length() - 1)
+	if (!correct)
 		incFailure();
 }
 
@@ -68,6 +90,16 @@ bool		game::isGameOver() const {
 }
 
 std::ostream	&operator<<(std::ostream &o, const game &data) {
-	
+	std::cout << "\033[2J\033[H";
+	if (data.isGameOver()) {
+		o << "The Secret Word Is: " << data.getSecretWord() << "\n";
+		o << "GAME OVER !" << std::endl;
+	}
+	else {
+		std::vector<std::string> frame = getFrame(data.getFailure());
+		for (int i = 0; i < frame.size(); i++)
+			std::cout << frame[i] << "\n";
+		std::cout << "\n" << data.getDiscovered() << "\n";
+	}
 	return (o);
 }
