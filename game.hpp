@@ -15,8 +15,6 @@ class game {
 		
 		void	setDiscoveredChar(char c);
 		void	incFailure();
-		void	incScore();
-		void	setGameOver();
 
 		std::string	getSecretWord() const;
 		std::string	getDiscovered() const;
